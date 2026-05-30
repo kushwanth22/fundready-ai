@@ -30,6 +30,13 @@ ssh -i "$EC2_KEY" "$EC2_HOST" "
   git pull origin main
 "
 
+# ── Build frontend static files ───────────────────────────────
+echo "⚛️  Building React frontend..."
+ssh -i "$EC2_KEY" "$EC2_HOST" "
+  cd $REMOTE_DIR/frontend
+  docker run --rm -v \$(pwd):/app -w /app node:20-alpine sh -c 'npm install && npm run build'
+"
+
 # ── Rebuild and restart Docker ────────────────────────────────
 echo "🐳 Rebuilding Docker containers..."
 ssh -i "$EC2_KEY" "$EC2_HOST" "
