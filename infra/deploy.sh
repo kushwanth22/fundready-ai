@@ -37,6 +37,13 @@ ssh -i "$EC2_KEY" "$EC2_HOST" "
   docker run --rm -v \$(pwd):/app -w /app node:20-alpine sh -c 'npm install && npm run build'
 "
 
+# sudo docker run creates dist/ owned by root — nginx (www-data) can't read → 500
+echo "🔒 Fixing frontend dist permissions..."
+ssh -i "$EC2_KEY" "$EC2_HOST" "
+  sudo chmod -R o+rX $REMOTE_DIR/frontend/dist
+  sudo chmod o+x /home/ubuntu
+"
+
 # ── Rebuild and restart Docker ────────────────────────────────
 echo "🐳 Rebuilding Docker containers..."
 ssh -i "$EC2_KEY" "$EC2_HOST" "

@@ -68,7 +68,7 @@ Backend (FastAPI)
 
 LangGraph Agent (4 linear nodes, no branching)
   research_node  → run_research() fires 4 Apify scrapers in parallel
-  analyze_node   → Claude 3.5 Sonnet returns structured JSON analysis
+  analyze_node   → Claude Sonnet 4.6 returns structured JSON analysis
   generate_node  → 6 sequential Claude calls, one per investor doc
   upload_node    → box_tool creates folder + uploads all 6 .md files
 ```
@@ -85,6 +85,24 @@ The Vite dev server proxies `/api/*` to `http://localhost:8000`, so the frontend
 | `backend/tools/box_tool.py` | Box SDK — folder creation + markdown file uploads |
 | `backend/api/main.py` | FastAPI app — SSE streaming endpoint + chat endpoint |
 | `frontend/src/App.jsx` | State machine for 3-phase UI; SSE reader |
+
+## Docker / EC2 Deployment
+
+The Dockerfile uses `context: ./backend` so `COPY . .` would put `agents/`, `api/` etc. directly in `/app/` — but all imports use `from backend.agents...`. The fix: `COPY . ./backend/` puts everything at `/app/backend/`, and `ENV PYTHONPATH=/app` makes imports resolve. The uvicorn CMD is `backend.api.main:app` (not `api.main:app`).
+
+The `docker-compose.yml` volume for the backend is `./backend:/app/backend` (not `./backend:/app`) to match this structure.
+
+**Local dev is unaffected** — it runs uvicorn directly with `--app-dir backend`, never touches Docker.
+
+**EC2**: `ubuntu@3.85.104.239`, key at `~/.ssh/fundready-key.pem`. Redeploy with `./infra/deploy.sh`.
+
+**EC2 operational gotchas:**
+- `sudo` required for all docker commands (ubuntu user not in docker group)
+- **`docker compose restart` does NOT reload `.env`** — use `sudo docker compose up -d --force-recreate backend` after editing `.env` (e.g. refreshing BOX_DEVELOPER_TOKEN)
+- Frontend build uses `sudo docker run node:20-alpine` → files owned by root → nginx 500. Fix after every build: `sudo chmod -R o+rX frontend/dist && sudo chmod o+x /home/ubuntu`
+- Box 401 = expired developer token (60 min TTL). Refresh at developer.box.com → app → Configuration → Generate Token, then update `.env` and `--force-recreate`
+
+**Amplify (frontend)**: Live at `https://main.d3izt28r2bk9bx.amplifyapp.com`. Monorepo mode enabled with app root `frontend`. Env var: `VITE_API_URL=http://3.85.104.239`. The `amplify.yml` must be at the **repo root** (not `frontend/`) and use the `applications` key with `appRoot: frontend` — Amplify monorepo mode rejects a root-level `frontend:` key with "Monorepo spec provided without applications key".
 
 ## LangGraph State Flow
 
