@@ -15,8 +15,8 @@
 set -e
 
 # ── Config — update these ─────────────────────────────────────
-EC2_HOST="ubuntu@YOUR_EC2_PUBLIC_IP"
-EC2_KEY="~/.ssh/your-key.pem"
+EC2_HOST="ubuntu@3.85.104.239"
+EC2_KEY="~/.ssh/fundready-key.pem"
 REMOTE_DIR="/home/ubuntu/fundready-ai"
 # ─────────────────────────────────────────────────────────────
 
