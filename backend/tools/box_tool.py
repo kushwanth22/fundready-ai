@@ -7,9 +7,15 @@ from backend.utils.config import settings
 from backend.models.state import GeneratedDocs
 
 
+class DeveloperTokenAuth(OAuth2):
+    def _refresh(self, access_token):
+        # Developer tokens can't be refreshed via OAuth2 flow — return current token.
+        return settings.box_developer_token, None
+
+
 def get_box_client() -> Client:
     """Authenticate via developer token (swap for OAuth2 in production)."""
-    auth = OAuth2(
+    auth = DeveloperTokenAuth(
         client_id=settings.box_client_id,
         client_secret=settings.box_client_secret,
         access_token=settings.box_developer_token,
