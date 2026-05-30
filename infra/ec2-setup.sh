@@ -43,7 +43,7 @@ sudo apt-get install -y git
 echo "📥 Cloning FundReady AI..."
 cd /home/ubuntu
 # Replace with your actual GitHub repo URL
-git clone https://github.com/YOUR_USERNAME/fundready-ai.git
+git clone https://github.com/kushwanth22/fundready-ai.git
 cd fundready-ai
 
 # ── 6. Create .env ────────────────────────────────────────────
