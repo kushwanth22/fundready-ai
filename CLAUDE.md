@@ -98,7 +98,11 @@ The `complete` event contains all 6 markdown docs (~50-100 KB) and can span mult
 
 ## Box Token Gotcha
 
-`BOX_DEVELOPER_TOKEN` expires after 60 minutes. Refresh it at developer.box.com whenever Box uploads fail with 401 errors. The `.env` may also contain `BOX_USER_ID` — this is ignored by `config.py` (`extra = 'ignore'`) and not used by `box_tool.py`.
+`BOX_DEVELOPER_TOKEN` expires after 60 minutes. Refresh it at developer.box.com whenever Box uploads fail.
+
+**Why `DeveloperTokenAuth` exists**: `boxsdk`'s `OAuth2` class, when it gets a 401, calls `_refresh()` which POSTs `grant_type=refresh_token` with `refresh_token=None` → Box returns 400. `DeveloperTokenAuth` subclasses `OAuth2` and overrides `_refresh` to return the current token from settings instead of hitting the token endpoint. Without this, uploads always fail with `400 on /oauth2/token`.
+
+The `.env` may also contain `BOX_USER_ID` — this is ignored by `config.py` (`extra = 'ignore'`) and not used by `box_tool.py`.
 
 ## SSE on EC2
 
